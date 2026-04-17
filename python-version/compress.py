@@ -3,6 +3,7 @@ import sys
 from PIL import Image
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp"}
+MAX_DIMENSION = 1920
 
 def get_base_dir():
     if getattr(sys, "frozen", False):
@@ -15,13 +16,18 @@ def compress_image(file_path, output_dir, quality=60):
     output_name = os.path.splitext(name)[0] + ".webp"
     output_path = os.path.join(output_dir, output_name)
 
+    original_width, original_height = img.size
+    img.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+    new_width, new_height = img.size
+
     img.save(output_path, format="WEBP", quality=quality)
 
     original_size = os.path.getsize(file_path)
     compressed_size = os.path.getsize(output_path)
     saved = ((original_size - compressed_size) / original_size) * 100
 
-    print(f"{name} -> {output_name}: {original_size / 1024:.1f}KB -> {compressed_size / 1024:.1f}KB ({saved:.1f}% saved)")
+    resized = f" | resized {original_width}x{original_height} -> {new_width}x{new_height}" if (original_width, original_height) != (new_width, new_height) else ""
+    print(f"{name} -> {output_name}: {original_size / 1024:.1f}KB -> {compressed_size / 1024:.1f}KB ({saved:.1f}% saved){resized}")
 
 def main():
     base = get_base_dir()
