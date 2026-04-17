@@ -9,16 +9,19 @@ def get_base_dir():
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.abspath(__file__))
 
-def compress_image(file_path, output_path, quality=60):
+def compress_image(file_path, output_dir, quality=60):
     img = Image.open(file_path)
-    img.save(output_path, optimize=True, quality=quality)
+    name = os.path.basename(file_path)
+    output_name = os.path.splitext(name)[0] + ".webp"
+    output_path = os.path.join(output_dir, output_name)
+
+    img.save(output_path, format="WEBP", quality=quality)
 
     original_size = os.path.getsize(file_path)
     compressed_size = os.path.getsize(output_path)
     saved = ((original_size - compressed_size) / original_size) * 100
 
-    name = os.path.basename(file_path)
-    print(f"{name}: {original_size / 1024:.1f}KB -> {compressed_size / 1024:.1f}KB ({saved:.1f}% saved)")
+    print(f"{name} -> {output_name}: {original_size / 1024:.1f}KB -> {compressed_size / 1024:.1f}KB ({saved:.1f}% saved)")
 
 def main():
     base = get_base_dir()
@@ -43,7 +46,7 @@ def main():
     for file in files:
         compress_image(
             os.path.join(raw_dir, file),
-            os.path.join(compressed_dir, file),
+            compressed_dir,
         )
 
     print("\nDone! Compressed images are in the compressed/ folder.")
